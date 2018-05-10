@@ -8,6 +8,16 @@ namespace Encryption_Schemes.Ciphers
 {
     public abstract class Cipher
     {
+        public class InvalidKey : Exception
+        {
+            public InvalidKey(string message = "", Exception inner = null)
+            : base(message, inner)
+            { }
+        }
+        protected int Mod(int num, int deno)
+        {
+            return num - deno * (int)Math.Floor(Convert.ToDecimal(num / deno));
+        }
         /// <summary>
         /// Encrypts a string
         /// </summary>

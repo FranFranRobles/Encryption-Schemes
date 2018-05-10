@@ -31,11 +31,19 @@ namespace Encryption_Schemes.Ciphers.Tests
         public void EncryptStrTest()
         {
             ShiftCipher myCipher = new ShiftCipher();
-            myCipher.GenKey();
             TestCtor(myCipher);
+            myCipher.GenKey();
             TestStrEnc(myCipher, myCipher.Encrypt(TEST_STR));
         }
-
+        [TestMethod()]
+        [TestCategory(SHIFT_CIPHER_TESTS)]
+        [ExpectedException(typeof(Cipher.InvalidKey))]
+        public void EncryptNoKeyTest()
+        {
+            ShiftCipher myCipher = new ShiftCipher();
+            TestCtor(myCipher);
+            myCipher.Encrypt(TEST_STR);
+        }
         [TestMethod()]
         [TestCategory(SHIFT_CIPHER_TESTS)]
         public void EncryptFileTest()
@@ -51,13 +59,21 @@ namespace Encryption_Schemes.Ciphers.Tests
         public void DecryptStrTest()
         {
             ShiftCipher myCipher = new ShiftCipher();
-            myCipher.GenKey();
             TestCtor(myCipher);
+            myCipher.GenKey();
             string encStr = myCipher.Encrypt(TEST_STR);
             TestStrEnc(myCipher, encStr);
             TestStrDec(encStr, myCipher.Decrypt(encStr));
         }
-
+        [TestMethod()]
+        [TestCategory(SHIFT_CIPHER_TESTS)]
+        [ExpectedException(typeof(Cipher.InvalidKey))]
+        public void DecryptNoKeyTest()
+        {
+            ShiftCipher myCipher = new ShiftCipher();
+            TestCtor(myCipher);
+            myCipher.Decrypt(Convert.ToBase64String(Encoding.ASCII.GetBytes(TEST_STR)));
+        }
         [TestMethod()]
         [TestCategory(SHIFT_CIPHER_TESTS)]
         public void DecryptFileTest()
@@ -117,7 +133,7 @@ namespace Encryption_Schemes.Ciphers.Tests
         public void ROT_13_TEST()
         {
             ShiftCipher myCipher = new ShiftCipher(ShiftCipher.MODE.ROT13);
-            Assert.AreEqual(ShiftCipher.MODE.CEASER, myCipher.GetMode(), "default shift mode not set correctly");
+            Assert.AreEqual(ShiftCipher.MODE.ROT13, myCipher.GetMode(), "default shift mode not set correctly");
             Assert.AreEqual(0, myCipher.GetKey(), "Incorrect defualt shift amount found");
             myCipher.GenKey();
             Assert.AreEqual(ROT_13_SHIFT, myCipher.GetKey(), "Incorrect shift amount found");

@@ -11,19 +11,41 @@ namespace Encryption_Schemes.Ciphers
     {
         private int key;
         private MODE shiftType;
+        private const int CEASER_SHIFT = 3;
+        private const int ROT_13_SHIFT = 13;
+        private const int DEFAULT_KEY = 0;
+        private const int MIN_SHIFT = 1;
+        private const int MAX_SHIFT = 100000; // 100,000
+        private const int TOTAL_BYTES = 256;
         public enum MODE { SHIFT = 0,CEASER, ROT13 };
         public ShiftCipher(MODE type = MODE.SHIFT)
         {
-            key = 0; // no shift
+            key = DEFAULT_KEY;
             shiftType = type;
         }
         private byte[] Encrypt(byte[] data)
         {
-            throw new NotImplementedException();
+            if (key == DEFAULT_KEY)
+            {
+                throw new InvalidKey();
+            }
+            for (int index = 0; index < data.Length; index++)
+            {
+                data[index] = (byte)Mod(data[index] + key, TOTAL_BYTES);
+            }
+            return data;
         }
         private byte[] Decrypt(byte[] data)
         {
-            throw new NotImplementedException();
+            if (key == DEFAULT_KEY)
+            {
+                throw new InvalidKey();
+            }
+            for (int index = 0; index < data.Length; index++)
+            {
+                data[index] = (byte)Mod(data[index] - key, TOTAL_BYTES);
+            }
+            return data;
         }
         public override string Encrypt(string msg)
         {
@@ -45,7 +67,7 @@ namespace Encryption_Schemes.Ciphers
         /// <returns>a decrypted string</returns>
         public override string Decrypt(string encMsg)
         {
-            return "";
+            return Encoding.UTF8.GetString(Decrypt(Convert.FromBase64String(encMsg)));
         }
         /// <summary>
         /// decrypts a file
@@ -54,14 +76,29 @@ namespace Encryption_Schemes.Ciphers
         /// <param name="decFile"> decrypted file</param>
         public override void Decrypt(string encFile, string decFile)
         {
-            throw new NotImplementedException();
+            File.WriteAllBytes(decFile, Decrypt(File.ReadAllBytes(encFile)));
         }
         /// <summary>
         /// generates a key to be used for encryption
         /// </summary>
         public override void GenKey()
         {
-            throw new NotImplementedException();
+            if (key == 0)
+            {
+                switch (shiftType)
+                {
+                    case MODE.CEASER:
+                        key = CEASER_SHIFT;
+                        break;
+                    case MODE.ROT13:
+                        key = ROT_13_SHIFT;
+                        break;
+                    default:
+                        Random generator = new Random();
+                        key = generator.Next(MIN_SHIFT, MAX_SHIFT);
+                        break;
+                }
+            }
         }
         /// <summary>
         /// Retrieves the stored encryption key
@@ -69,7 +106,7 @@ namespace Encryption_Schemes.Ciphers
         /// <returns></returns>
         public int GetKey()
         {
-            throw new NotImplementedException();
+            return key;
         }
         /// <summary>
         /// Sets the Key to be used with the encryption
@@ -77,7 +114,7 @@ namespace Encryption_Schemes.Ciphers
         /// <param name="newKey"></param>
         public void SetKey(int newKey)
         {
-            throw new NotImplementedException();
+            key = newKey;
         }
         public MODE GetMode()
         {
