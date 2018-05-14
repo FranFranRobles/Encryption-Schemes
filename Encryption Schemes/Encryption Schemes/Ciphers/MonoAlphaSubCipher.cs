@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace Encryption_Schemes.Ciphers
 {
-    class MonoAlphaSubCipher : Cipher
+    public class MonoAlphaSubCipher : Cipher
     {
+        private byte[] key;
+        private const int TOTAL_BYTES = 256;
         /// <summary>
         /// Encrypts a string
         /// </summary>
@@ -50,6 +52,23 @@ namespace Encryption_Schemes.Ciphers
         public override void GenKey()
         {
             throw new NotImplementedException();
+        }
+        /// <summary>
+        /// Retrieves the stored encryption key
+        /// </summary>
+        /// <returns></returns>
+        public byte[] GetKey()
+        {
+            return key;
+        }
+        /// <summary>
+        /// Sets the Key to be used with the encryption
+        /// </summary>
+        /// <param name="newKey"></param>
+        public void SetKey(byte[] newKey)
+        {
+            throw new NotImplementedException();
+            key = newKey;
         }
     }
 }
