@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Encryption_Schemes.Ciphers
 {
@@ -10,6 +11,45 @@ namespace Encryption_Schemes.Ciphers
     {
         private byte[] key;
         private const int TOTAL_BYTES = 256;
+
+        private byte[] Encrypt(byte[] data)
+        {
+            if (key == null || !ValidKey(key))
+            {
+                throw new InvalidKey();
+            }
+            int index = 0;
+            while (index < data.Length)
+            {
+                data[index] = key[data[index]];
+                index++;
+            }
+            return data;
+        }
+        private byte[] Decrypt(byte[] data)
+        {
+            if (key == null || !ValidKey(key))
+            {
+                throw new InvalidKey();
+            }
+            byte[] decKey = MakeDecKey();
+            int index = 0;
+            while (index < data.Length)
+            {
+                data[index] = decKey[data[index]];
+                index++;
+            }
+            return data;
+        }
+        private byte[] MakeDecKey()
+        {
+            byte[] decKey = new byte[TOTAL_BYTES];
+            for (int index = 0; index < key.Length; index++)
+            {
+                decKey[key[index]] = (byte)index;
+            }
+            return decKey;
+        }
         /// <summary>
         /// Encrypts a string
         /// </summary>
@@ -17,7 +57,7 @@ namespace Encryption_Schemes.Ciphers
         /// <returns>an encrypted string</returns>
         public override string Encrypt(string msg)
         {
-            throw new NotImplementedException();
+            return Convert.ToBase64String(Encrypt(Encoding.ASCII.GetBytes(msg)));
         }
         /// <summary>
         /// Encrypts a file
@@ -26,7 +66,7 @@ namespace Encryption_Schemes.Ciphers
         /// <param name="encFile">encrypted file</param>
         public override void Encrypt(string decFile, string encFile)
         {
-            throw new NotImplementedException();
+            File.WriteAllBytes(encFile, Encrypt(File.ReadAllBytes(decFile)));
         }
         /// <summary>
         /// Decrypts a string
@@ -35,7 +75,7 @@ namespace Encryption_Schemes.Ciphers
         /// <returns>a decrypted string</returns>
         public override string Decrypt(string encMsg)
         {
-            throw new NotImplementedException();
+            return Encoding.UTF8.GetString(Decrypt(Convert.FromBase64String(encMsg)));
         }
         /// <summary>
         /// decrypts a file
@@ -44,14 +84,49 @@ namespace Encryption_Schemes.Ciphers
         /// <param name="decFile"> decrypted file</param>
         public override void Decrypt(string encFile, string decFile)
         {
-            throw new NotImplementedException();
+            File.WriteAllBytes(decFile, Decrypt(File.ReadAllBytes(encFile)));
         }
         /// <summary>
         /// generates a key to be used for encryption
         /// </summary>
         public override void GenKey()
         {
-            throw new NotImplementedException();
+            key = RandList();
+        }
+        private List<T> Randomize<T>(List<T> list)
+        {
+            List<T> randomize = new List<T>();
+            Random ranGen = new Random();
+            while (list.Count > 0)
+            {
+                T temp = list[ranGen.Next() % list.Count];
+                list.Remove(temp);
+                randomize.Add(temp);
+            }
+            return randomize;
+        }
+        /// <summary>
+        /// generates a  random list of bytes that only occur once
+        /// </summary>
+        /// <returns>byte[] of random bytes that only occur once</returns>
+        private byte[] RandList()
+        {
+            List<int> genList = new List<int>(Enumerable.Range(0, TOTAL_BYTES));
+            List<byte> tempNumHolder = new List<byte>();
+            Random ranGen = new Random();
+            List<byte> key = new List<byte>();
+            foreach (int num in genList)
+            {
+                tempNumHolder.Add((byte)num);
+            }
+            while (tempNumHolder.Count > 0)
+            {
+                tempNumHolder = Randomize(tempNumHolder);
+                byte temp = tempNumHolder[ranGen.Next() % tempNumHolder.Count];
+                tempNumHolder.Remove(temp);
+                key.Add(temp);
+            }
+            return key.ToArray();
         }
         /// <summary>
         /// Retrieves the stored encryption key
@@ -67,8 +142,28 @@ namespace Encryption_Schemes.Ciphers
         /// <param name="newKey"></param>
         public void SetKey(byte[] newKey)
         {
-            throw new NotImplementedException();
+            if (!ValidKey(newKey))
+            {
+                throw new InvalidKey("key is not of correct type or length");
+            }
             key = newKey;
+        }
+        /// <summary>
+        /// verifies the key is of correct length or type
+        /// </summary>
+        /// <param name="key">key to be checked</param>
+        /// <returns>true if key is correct</returns>
+        private bool ValidKey(byte[] key)
+        {
+            bool validKey = key.Length == TOTAL_BYTES;
+            int keyIndex = 0;
+            bool[] contaimentList = new bool[TOTAL_BYTES];
+            while (validKey == true && keyIndex < TOTAL_BYTES)
+            {
+                validKey = contaimentList[key[keyIndex]] != true;
+                contaimentList[key[keyIndex++]] = true;
+            }
+            return validKey;
         }
     }
 }

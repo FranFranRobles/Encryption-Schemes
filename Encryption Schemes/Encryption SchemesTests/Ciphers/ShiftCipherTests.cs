@@ -12,8 +12,8 @@ namespace Encryption_Schemes.Ciphers.Tests
     public class ShiftCipherTests
     {
         string BASE_FILE = @"..\..\TestFiles\SampleTxt.txt";
-        string ENC_FILE = @"..\..\TestFiles\EncTxt.txt";
-        string DEC_FILE = @"..\..\TestFiles\DecTxt.txt";
+        string ENC_FILE = @"..\..\TestFiles\EncFile.txt";
+        string DEC_FILE = @"..\..\TestFiles\DecFile.txt";
         const string SHIFT_CIPHER_TESTS = "Shift Cipher Tests";
         const string TEST_STR = "This is my Secret message.";
         const int TEST_SHIFT = 8;

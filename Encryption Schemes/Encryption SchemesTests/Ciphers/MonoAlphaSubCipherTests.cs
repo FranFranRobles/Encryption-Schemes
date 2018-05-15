@@ -12,11 +12,10 @@ namespace Encryption_Schemes.Ciphers.Tests
     public class MonoAlphaSubCipherTests
     {
         string BASE_FILE = @"..\..\TestFiles\SampleTxt.txt";
-        string ENC_FILE = @"..\..\TestFiles\EncTxt.txt";
-        string DEC_FILE = @"..\..\TestFiles\DecTxt.txt";
+        string ENC_FILE = @"..\..\TestFiles\EncFile.txt";
+        string DEC_FILE = @"..\..\TestFiles\DecFile.txt";
         const string MASC_CIPHER_TESTS = "MASC Tests";
         const string TEST_STR = "This is my Secret message.";
-        byte[] TEST_KEY = { };
 
         [TestMethod()]
         [TestCategory(MASC_CIPHER_TESTS)]
@@ -77,6 +76,8 @@ namespace Encryption_Schemes.Ciphers.Tests
         public void DecryptFileTest()
         {
             MonoAlphaSubCipher masc = new MonoAlphaSubCipher();
+            System.IO.File.Exists(ENC_FILE);
+            System.IO.File.Exists(DEC_FILE);
             masc.GenKey();
             masc.Encrypt(BASE_FILE, ENC_FILE);
             TestFileEnc();
@@ -98,20 +99,26 @@ namespace Encryption_Schemes.Ciphers.Tests
         [TestCategory(MASC_CIPHER_TESTS)]
         public void GetKeyTest()
         {
-            MonoAlphaSubCipher masc = new MonoAlphaSubCipher();
-            TestCtor(masc);
-            masc.SetKey(TEST_KEY);
-            Assert.AreEqual(TEST_KEY, masc.GetKey(), "Incorrect key returned");
+            MonoAlphaSubCipher encryptorOne = new MonoAlphaSubCipher();
+            MonoAlphaSubCipher encryptorTwo = new MonoAlphaSubCipher();
+            TestCtor(encryptorOne);
+            TestCtor(encryptorTwo);
+            encryptorTwo.GenKey();
+            encryptorOne.SetKey(encryptorTwo.GetKey());
+            CompareKeys(encryptorTwo.GetKey(), encryptorOne.GetKey());
         }
 
         [TestMethod()]
         [TestCategory(MASC_CIPHER_TESTS)]
         public void SetKeyTest()
         {
-            MonoAlphaSubCipher masc = new MonoAlphaSubCipher();
-            TestCtor(masc);
-            masc.SetKey(TEST_KEY);
-            CompareKeys(TEST_KEY, masc.GetKey());
+            MonoAlphaSubCipher encryptorOne = new MonoAlphaSubCipher();
+            MonoAlphaSubCipher encryptorTwo = new MonoAlphaSubCipher();
+            TestCtor(encryptorOne);
+            TestCtor(encryptorTwo);
+            encryptorTwo.GenKey();
+            encryptorOne.SetKey(encryptorTwo.GetKey());
+            CompareKeys(encryptorTwo.GetKey(), encryptorOne.GetKey());
         }
         static void TestCtor(MonoAlphaSubCipher cipher)
         {
