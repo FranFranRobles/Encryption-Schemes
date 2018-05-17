@@ -11,13 +11,32 @@ namespace Encryption_Schemes.Ciphers
     {
         private byte[] key;
         private const int TOTAL_BYTES = 256;
+        private const int DEFAULT_KEY_LEN = 32;
 
         private byte[] Encrypt(byte[] data)
         {
+            if (key == null)
+            {
+                throw new InvalidKey();
+            }
+            int keyIndex = 0;
+            for (int index = 0; index < data.Length; index++)
+            {
+                data[index] = (byte)Mod(data[index] + key[keyIndex++ % key.Length], TOTAL_BYTES);
+            }
             return data;
         }
         private byte[] Decrypt(byte[] data)
         {
+            if (key == null)
+            {
+                throw new InvalidKey();
+            }
+            int keyIndex = 0;
+            for (int index = 0; index < data.Length; index++)
+            {
+                data[index] = (byte)Mod(data[index] - key[keyIndex++ % key.Length], TOTAL_BYTES);
+            }
             return data;
         }
         /// <summary>
@@ -61,7 +80,20 @@ namespace Encryption_Schemes.Ciphers
         /// </summary>
         public override void GenKey()
         {
-            key = null;
+            GenKey(DEFAULT_KEY_LEN);
+        }
+        public void GenKey(int kLen)
+        {
+            if (kLen < 0)
+            {
+                throw new InvalidKey("Invalid Key Len Choosen");
+            }
+            Random ranGen = new Random();
+            key = new byte[kLen];
+            for (int index = 0; index < key.Length; index++)
+            {
+                key[index] = (byte)(ranGen.Next() % TOTAL_BYTES);
+            }
         }
         /// <summary>
         /// Retrieves the stored encryption key
