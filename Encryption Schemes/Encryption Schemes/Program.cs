@@ -10,6 +10,7 @@ namespace Encryption_Schemes
     {
         static void Main(string[] args)
         {
+
         }
     }
 }

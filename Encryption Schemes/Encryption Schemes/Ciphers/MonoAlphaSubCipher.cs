@@ -3,14 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace Encryption_Schemes.Ciphers
 {
     public class MonoAlphaSubCipher : Cipher
     {
+        //Private Data Members
         private byte[] key;
-        private const int TOTAL_BYTES = 256;
+
+        //Private Methods
 
         private byte[] Encrypt(byte[] data)
         {
@@ -41,6 +42,10 @@ namespace Encryption_Schemes.Ciphers
             }
             return data;
         }
+        /// <summary>
+        /// Creates the key to be used for decryption
+        /// </summary>
+        /// <returns>A Decryption Key</returns>
         private byte[] MakeDecKey()
         {
             byte[] decKey = new byte[TOTAL_BYTES];
@@ -51,13 +56,89 @@ namespace Encryption_Schemes.Ciphers
             return decKey;
         }
         /// <summary>
+        /// verifies the key is of correct length or type
+        /// </summary>
+        /// <param name="key">key to be checked</param>
+        /// <returns>true if key is correct</returns>
+        private bool ValidKey(byte[] key)
+        {
+            bool validKey = key.Length == TOTAL_BYTES;
+            int keyIndex = 0;
+            bool[] contaimentList = new bool[TOTAL_BYTES];
+            while (validKey == true && keyIndex < TOTAL_BYTES)
+            {
+                validKey = contaimentList[key[keyIndex]] != true;
+                contaimentList[key[keyIndex++]] = true;
+            }
+            return validKey;
+        }
+        /// <summary>
+        /// generates a  random list of bytes that only occur once
+        /// </summary>
+        /// <returns>byte[] of random bytes that only occur once</returns>
+        private byte[] GenerateKey()
+        {
+            List<byte> key = new List<byte>();
+            List<byte> tempNumHolder = new List<byte>();
+            List<int> genList = new List<int>(Enumerable.Range(0, TOTAL_BYTES));// int list 0 - 255
+            foreach (int num in genList)
+            {
+                tempNumHolder.Add((byte)num);
+            }
+            while (tempNumHolder.Count > 0)
+            {
+                tempNumHolder = RandomizeList(tempNumHolder);
+                byte temp = tempNumHolder[RandomInt() % tempNumHolder.Count];
+                tempNumHolder.Remove(temp);
+                key.Add(temp);
+            }
+            return key.ToArray();
+        }
+        /// <summary>
+        /// Randomly Shuffles the inputed list
+        /// </summary>
+        /// <typeparam name="T">Type</typeparam>
+        /// <param name="list">list to be shuffled</param>
+        /// <returns>a randomly shuffled list</returns>
+        private List<T> RandomizeList<T>(List<T> list)
+        {
+            List<T> randomizedList = new List<T>();
+            while (list.Count > 0)
+            {
+                T temp = list[RandomInt() % list.Count];
+                list.Remove(temp);
+                randomizedList.Add(temp);
+            }
+            return randomizedList;
+        }
+        /// <summary>
+        /// Generates A Random Int
+        /// </summary>
+        /// <returns>A random int</returns>
+        private int RandomInt()
+        {
+            byte[] intBytes = new byte[INT_BYTES];
+            RanGen(ref intBytes);
+            int randInt = BitConverter.ToInt32(intBytes, 0); // 0 = starting index
+            return Math.Abs(randInt);
+        }
+        //Public Methods
+
+        /// <summary>
+        /// generates an encryption key
+        /// </summary>
+        public override void GenKey()
+        {
+            key = GenerateKey();
+        }
+        /// <summary>
         /// Encrypts a string
         /// </summary>
         /// <param name="msg">string to be encrtypted</param>
         /// <returns>an encrypted string</returns>
         public override string Encrypt(string msg)
         {
-            return Convert.ToBase64String(Encrypt(Encoding.ASCII.GetBytes(msg)));
+            return FromByteArrToB_64Str(Encrypt(FromStrToByteArr(msg)));
         }
         /// <summary>
         /// Encrypts a file
@@ -66,7 +147,7 @@ namespace Encryption_Schemes.Ciphers
         /// <param name="encFile">encrypted file</param>
         public override void Encrypt(string decFile, string encFile)
         {
-            File.WriteAllBytes(encFile, Encrypt(File.ReadAllBytes(decFile)));
+            WriteToFile(encFile, Encrypt(ReadFile(decFile)));
         }
         /// <summary>
         /// Decrypts a string
@@ -75,7 +156,7 @@ namespace Encryption_Schemes.Ciphers
         /// <returns>a decrypted string</returns>
         public override string Decrypt(string encMsg)
         {
-            return Encoding.UTF8.GetString(Decrypt(Convert.FromBase64String(encMsg)));
+            return ConvertToString(Decrypt(FromB_64StrToByteArr(encMsg)));
         }
         /// <summary>
         /// decrypts a file
@@ -84,49 +165,7 @@ namespace Encryption_Schemes.Ciphers
         /// <param name="decFile"> decrypted file</param>
         public override void Decrypt(string encFile, string decFile)
         {
-            File.WriteAllBytes(decFile, Decrypt(File.ReadAllBytes(encFile)));
-        }
-        /// <summary>
-        /// generates a key to be used for encryption
-        /// </summary>
-        public override void GenKey()
-        {
-            key = RandList();
-        }
-        private List<T> Randomize<T>(List<T> list)
-        {
-            List<T> randomize = new List<T>();
-            Random ranGen = new Random();
-            while (list.Count > 0)
-            {
-                T temp = list[ranGen.Next() % list.Count];
-                list.Remove(temp);
-                randomize.Add(temp);
-            }
-            return randomize;
-        }
-        /// <summary>
-        /// generates a  random list of bytes that only occur once
-        /// </summary>
-        /// <returns>byte[] of random bytes that only occur once</returns>
-        private byte[] RandList()
-        {
-            List<int> genList = new List<int>(Enumerable.Range(0, TOTAL_BYTES));
-            List<byte> tempNumHolder = new List<byte>();
-            Random ranGen = new Random();
-            List<byte> key = new List<byte>();
-            foreach (int num in genList)
-            {
-                tempNumHolder.Add((byte)num);
-            }
-            while (tempNumHolder.Count > 0)
-            {
-                tempNumHolder = Randomize(tempNumHolder);
-                byte temp = tempNumHolder[ranGen.Next() % tempNumHolder.Count];
-                tempNumHolder.Remove(temp);
-                key.Add(temp);
-            }
-            return key.ToArray();
+            WriteToFile(decFile, Decrypt(ReadFile(encFile)));
         }
         /// <summary>
         /// Retrieves the stored encryption key
@@ -147,23 +186,6 @@ namespace Encryption_Schemes.Ciphers
                 throw new InvalidKey("key is not of correct type or length");
             }
             key = newKey;
-        }
-        /// <summary>
-        /// verifies the key is of correct length or type
-        /// </summary>
-        /// <param name="key">key to be checked</param>
-        /// <returns>true if key is correct</returns>
-        private bool ValidKey(byte[] key)
-        {
-            bool validKey = key.Length == TOTAL_BYTES;
-            int keyIndex = 0;
-            bool[] contaimentList = new bool[TOTAL_BYTES];
-            while (validKey == true && keyIndex < TOTAL_BYTES)
-            {
-                validKey = contaimentList[key[keyIndex]] != true;
-                contaimentList[key[keyIndex++]] = true;
-            }
-            return validKey;
         }
     }
 }

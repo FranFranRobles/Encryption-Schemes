@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.IO;
 
 namespace Encryption_Schemes.Ciphers
 {
     public class VigenereCipher : Cipher
     {
+        // Private Members
         private byte[] key;
-        private const int TOTAL_BYTES = 256;
+
+        // Private Constants
         private const int DEFAULT_KEY_LEN = 32;
 
+        // Private Methods
         private byte[] Encrypt(byte[] data)
         {
             if (key == null)
@@ -20,9 +22,9 @@ namespace Encryption_Schemes.Ciphers
                 throw new InvalidKey();
             }
             int keyIndex = 0;
-            for (int index = 0; index < data.Length; index++)
+            for (int curByte = 0; curByte < data.Length; curByte++)
             {
-                data[index] = (byte)Mod(data[index] + key[keyIndex++ % key.Length], TOTAL_BYTES);
+                data[curByte] = (byte)Mod(data[curByte] + key[keyIndex++ % key.Length], TOTAL_BYTES);
             }
             return data;
         }
@@ -33,11 +35,34 @@ namespace Encryption_Schemes.Ciphers
                 throw new InvalidKey();
             }
             int keyIndex = 0;
-            for (int index = 0; index < data.Length; index++)
+            for (int currByte = 0; currByte < data.Length; currByte++)
             {
-                data[index] = (byte)Mod(data[index] - key[keyIndex++ % key.Length], TOTAL_BYTES);
+                data[currByte] = (byte)Mod(data[currByte] - key[keyIndex++ % key.Length], TOTAL_BYTES);
             }
             return data;
+        }
+
+        //Public Methods
+
+        /// <summary>
+        /// generates an encryption key
+        /// </summary>
+        public override void GenKey()
+        {
+            GenKey(DEFAULT_KEY_LEN);
+        }
+        /// <summary>
+        /// generates an encryption key to a specified key length
+        /// </summary>
+        /// <param name="kLen"> len of desired key</param>
+        public void GenKey(int kLen)
+        {
+            if (kLen <= 0)
+            {
+                throw new InvalidKey("Invalid Key Len Choosen");
+            }
+            key = new byte[kLen];
+            RanGen(ref key);
         }
         /// <summary>
         /// Encrypts a string
@@ -46,7 +71,7 @@ namespace Encryption_Schemes.Ciphers
         /// <returns>an encrypted string</returns>
         public override string Encrypt(string msg)
         {
-            return Convert.ToBase64String(Encrypt(Encoding.ASCII.GetBytes(msg)));
+            return FromByteArrToB_64Str(Encrypt(FromStrToByteArr(msg)));
         }
         /// <summary>
         /// Encrypts a file
@@ -55,7 +80,7 @@ namespace Encryption_Schemes.Ciphers
         /// <param name="encFile">encrypted file</param>
         public override void Encrypt(string decFile, string encFile)
         {
-            File.WriteAllBytes(encFile, Encrypt(File.ReadAllBytes(decFile)));
+            WriteToFile(encFile, Encrypt(ReadFile(decFile)));
         }
         /// <summary>
         /// Decrypts a string
@@ -64,7 +89,7 @@ namespace Encryption_Schemes.Ciphers
         /// <returns>a decrypted string</returns>
         public override string Decrypt(string encMsg)
         {
-            return Encoding.UTF8.GetString(Decrypt(Convert.FromBase64String(encMsg)));
+            return ConvertToString(Decrypt(FromB_64StrToByteArr(encMsg)));
         }
         /// <summary>
         /// decrypts a file
@@ -73,27 +98,7 @@ namespace Encryption_Schemes.Ciphers
         /// <param name="decFile"> decrypted file</param>
         public override void Decrypt(string encFile, string decFile)
         {
-            File.WriteAllBytes(decFile, Decrypt(File.ReadAllBytes(encFile)));
-        }
-        /// <summary>
-        /// generates a key to be used for encryption
-        /// </summary>
-        public override void GenKey()
-        {
-            GenKey(DEFAULT_KEY_LEN);
-        }
-        public void GenKey(int kLen)
-        {
-            if (kLen < 0)
-            {
-                throw new InvalidKey("Invalid Key Len Choosen");
-            }
-            Random ranGen = new Random();
-            key = new byte[kLen];
-            for (int index = 0; index < key.Length; index++)
-            {
-                key[index] = (byte)(ranGen.Next() % TOTAL_BYTES);
-            }
+            WriteToFile(decFile, Decrypt(ReadFile(encFile)));
         }
         /// <summary>
         /// Retrieves the stored encryption key
