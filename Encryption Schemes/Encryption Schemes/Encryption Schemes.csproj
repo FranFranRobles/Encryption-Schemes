@@ -44,6 +44,7 @@
   <ItemGroup>
     <Compile Include="Ciphers\CipherInterface.cs" />
     <Compile Include="Ciphers\MonoAlphaSubCipher.cs" />
+    <Compile Include="Ciphers\OneTimePad.cs" />
     <Compile Include="Ciphers\ShiftCipher.cs" />
     <Compile Include="Ciphers\VigenereCipher.cs" />
     <Compile Include="Program.cs" />

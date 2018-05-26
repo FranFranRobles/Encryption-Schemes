@@ -57,6 +57,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="Ciphers\MonoAlphaSubCipherTests.cs" />
+    <Compile Include="Ciphers\OneTimePadTests.cs" />
     <Compile Include="Ciphers\ShiftCipherTests.cs" />
     <Compile Include="Ciphers\VigenereCipherTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
